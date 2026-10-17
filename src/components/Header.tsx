@@ -16,7 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
   } = useOps();
 
   return (
-    <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md bg-opacity-95">
+    <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
           
@@ -27,12 +27,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm tracking-tight text-white">NEWTONITE</span>
-                <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-800/60">
+                <span className="font-bold text-sm tracking-tight text-slate-900">NEWTONITE</span>
+                <span className="text-[10px] font-semibold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
                   OPS HUB
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 hidden sm:block">Operations Under Pressure Coordination System</p>
+              <p className="text-[10px] text-slate-500 hidden sm:block">Operations Coordination Platform</p>
             </div>
           </div>
 
@@ -40,16 +40,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
           <div className="flex items-center gap-2.5">
             
             {/* Team Filter */}
-            <div className="hidden md:flex items-center gap-1.5 bg-slate-800/80 rounded-lg px-2.5 py-1.5 border border-slate-700/80 text-xs">
-              <Layers className="w-3.5 h-3.5 text-slate-400" />
+            <div className="hidden md:flex items-center gap-1.5 bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-200 text-xs">
+              <Layers className="w-3.5 h-3.5 text-slate-500" />
               <select
                 aria-label="Filter work items by team"
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value)}
-                className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer"
+                className="bg-transparent text-slate-700 text-xs focus:outline-none cursor-pointer"
               >
                 {TEAMS.map((t) => (
-                  <option key={t} value={t} className="bg-slate-900 text-slate-200">
+                  <option key={t} value={t} className="bg-white text-slate-800">
                     {t}
                   </option>
                 ))}
@@ -57,10 +57,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
             </div>
 
             {/* Test Persona Switcher (RBAC Demonstrator) */}
-            <div className="flex items-center gap-1.5 bg-slate-800/80 rounded-lg px-2.5 py-1.5 border border-slate-700/80 text-xs">
-              <Users className="w-3.5 h-3.5 text-indigo-400" />
+            <div className="flex items-center gap-1.5 bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-200 text-xs">
+              <Users className="w-3.5 h-3.5 text-indigo-600" />
               <div className="flex flex-col text-left">
-                <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold">
+                <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">
                   Test Role (RBAC)
                 </span>
                 <select
@@ -70,10 +70,10 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
                     const u = INITIAL_USERS.find((x) => x.id === e.target.value);
                     if (u) setCurrentUser(u);
                   }}
-                  className="bg-transparent text-xs font-medium text-slate-200 focus:outline-none cursor-pointer"
+                  className="bg-transparent text-xs font-semibold text-slate-800 focus:outline-none cursor-pointer"
                 >
                   {INITIAL_USERS.map((u) => (
-                    <option key={u.id} value={u.id} className="bg-slate-900 text-slate-200">
+                    <option key={u.id} value={u.id} className="bg-white text-slate-800">
                       {u.name} — {u.role.replace('_', ' ')}
                     </option>
                   ))}
@@ -84,7 +84,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
             {/* New Work Item Button */}
             <button
               onClick={onOpenCreateModal}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm transition"
             >
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">New Work Item</span>

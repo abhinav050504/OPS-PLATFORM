@@ -10,26 +10,26 @@ export const ToastContainer: React.FC = () => {
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />;
+        return <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />;
       case 'error':
-        return <AlertOctagon className="w-4 h-4 text-rose-400 shrink-0" />;
+        return <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0" />;
       case 'warning':
-        return <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />;
+        return <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />;
       default:
-        return <Info className="w-4 h-4 text-indigo-400 shrink-0" />;
+        return <Info className="w-4 h-4 text-indigo-600 shrink-0" />;
     }
   };
 
   const getBorderColor = (type: string) => {
     switch (type) {
       case 'success':
-        return 'border-emerald-500/40 bg-slate-900/95';
+        return 'border-emerald-200 bg-emerald-50/90 text-emerald-950';
       case 'error':
-        return 'border-rose-500/50 bg-slate-900/95';
+        return 'border-rose-200 bg-rose-50/90 text-rose-950';
       case 'warning':
-        return 'border-amber-500/50 bg-slate-900/95';
+        return 'border-amber-200 bg-amber-50/90 text-amber-950';
       default:
-        return 'border-indigo-500/40 bg-slate-900/95';
+        return 'border-slate-200 bg-white text-slate-900';
     }
   };
 
@@ -38,21 +38,21 @@ export const ToastContainer: React.FC = () => {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`pointer-events-auto p-3.5 rounded-xl border shadow-xl backdrop-blur-md transition-all animate-slideUp flex items-start gap-3 ${getBorderColor(
+          className={`pointer-events-auto p-3.5 rounded-xl border shadow-lg backdrop-blur-xs transition-all animate-slideUp flex items-start gap-3 ${getBorderColor(
             toast.type
           )}`}
         >
           {getIcon(toast.type)}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-1">
-              <span className="text-xs font-bold text-white">{toast.title}</span>
+              <span className="text-xs font-bold">{toast.title}</span>
               <span className="text-[10px] font-mono text-slate-500">{toast.timestamp}</span>
             </div>
-            <p className="text-[11px] text-slate-300 mt-0.5 leading-snug">{toast.description}</p>
+            <p className="text-[11px] text-slate-700 mt-0.5 leading-snug">{toast.description}</p>
           </div>
           <button
             onClick={() => removeToast(toast.id)}
-            className="text-slate-500 hover:text-slate-300 transition"
+            className="text-slate-400 hover:text-slate-700 transition"
           >
             <X className="w-3.5 h-3.5" />
           </button>

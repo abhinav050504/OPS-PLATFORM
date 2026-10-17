@@ -20,68 +20,68 @@ export const StatsOverview: React.FC = () => {
       {/* 1. Critical */}
       <div 
         onClick={() => { setPriorityFilter('P0_CRITICAL'); setStatusFilter('ALL'); }}
-        className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3.5 cursor-pointer transition shadow-sm group"
+        className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-3.5 cursor-pointer transition shadow-xs group"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             P0 Critical Incidents
           </span>
-          <Flame className="w-4 h-4 text-rose-500" />
+          <Flame className="w-4 h-4 text-rose-600" />
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-white">{criticalCount}</span>
-          <span className="text-[11px] text-rose-400 font-medium">Requires triage</span>
+          <span className="text-2xl font-bold text-slate-900">{criticalCount}</span>
+          <span className="text-[11px] text-rose-600 font-medium">Requires triage</span>
         </div>
       </div>
 
       {/* 2. Pending Approvals */}
       <div 
         onClick={() => { setStatusFilter('PENDING_APPROVAL'); setPriorityFilter('ALL'); }}
-        className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3.5 cursor-pointer transition shadow-sm group"
+        className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-3.5 cursor-pointer transition shadow-xs group"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Pending Approvals
           </span>
-          <Clock className="w-4 h-4 text-amber-500" />
+          <Clock className="w-4 h-4 text-amber-600" />
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-white">{pendingApprovalsCount}</span>
-          <span className="text-[11px] text-amber-400 font-medium">Blocking execution</span>
+          <span className="text-2xl font-bold text-slate-900">{pendingApprovalsCount}</span>
+          <span className="text-[11px] text-amber-600 font-medium">Blocking execution</span>
         </div>
       </div>
 
       {/* 3. My Responsibilities */}
       <div 
         onClick={() => { setStatusFilter('ALL'); setPriorityFilter('ALL'); }}
-        className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3.5 cursor-pointer transition shadow-sm group"
+        className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-3.5 cursor-pointer transition shadow-xs group"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Assigned to Me
           </span>
-          <UserCheck className="w-4 h-4 text-indigo-400" />
+          <UserCheck className="w-4 h-4 text-indigo-600" />
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-white">{myAssignedCount}</span>
-          <span className="text-[11px] text-indigo-300 font-medium">{currentUser.name.split(' ')[0]}'s active</span>
+          <span className="text-2xl font-bold text-slate-900">{myAssignedCount}</span>
+          <span className="text-[11px] text-indigo-600 font-medium">{currentUser.name.split(' ')[0]}'s active</span>
         </div>
       </div>
 
       {/* 4. Unassigned / Needs Triage */}
       <div 
         onClick={() => { setStatusFilter('TRIAGE'); setPriorityFilter('ALL'); }}
-        className="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3.5 cursor-pointer transition shadow-sm group"
+        className="bg-white border border-slate-200 hover:border-slate-300 rounded-xl p-3.5 cursor-pointer transition shadow-xs group"
       >
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             Unassigned / Triage
           </span>
-          <AlertOctagon className="w-4 h-4 text-cyan-400" />
+          <AlertOctagon className="w-4 h-4 text-sky-600" />
         </div>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-white">{triageCount}</span>
-          <span className="text-[11px] text-cyan-300 font-medium">Needs owner</span>
+          <span className="text-2xl font-bold text-slate-900">{triageCount}</span>
+          <span className="text-[11px] text-sky-600 font-medium">Needs owner</span>
         </div>
       </div>
 

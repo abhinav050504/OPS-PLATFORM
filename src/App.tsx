@@ -14,7 +14,7 @@ function DashboardContent() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* 1. Global Navigation & RBAC Switcher */}
       <Header onOpenCreateModal={() => setIsCreateOpen(true)} />
 
