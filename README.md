@@ -1,4 +1,4 @@
-# Newtonite Operations Platform (Ops Hub)
+# Newtonite Operations Control Platform (Ops Hub)
 > **One-Day Full-Stack Engineering Assessment — Operations Under Pressure**  
 > *A high-reliability coordination platform designed for multi-team operational environments under pressure.*
 
