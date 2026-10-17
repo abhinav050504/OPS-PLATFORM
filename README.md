@@ -13,7 +13,7 @@
 ### 2. Installation & Run Locally
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone <https://github.com/abhinav050504/OPS-PLATFORM.git>
 cd newtonite-ops-platform
 
 # Install dependencies
