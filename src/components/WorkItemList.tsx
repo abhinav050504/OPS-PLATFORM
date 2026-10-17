@@ -14,6 +14,7 @@ export const WorkItemList: React.FC = () => {
     searchQuery,
     currentUser,
     claimWorkItem,
+    setActivePage,
   } = useOps();
 
   const getPriorityBadge = (p: WorkItemPriority) => {
@@ -106,7 +107,10 @@ export const WorkItemList: React.FC = () => {
           return (
             <div
               key={item.id}
-              onClick={() => setSelectedItem(item)}
+              onClick={() => {
+                setSelectedItem(item);
+                setActivePage('DETAIL');
+              }}
               className={`p-3.5 rounded-xl border cursor-pointer transition shadow-xs ${
                 isSelected
                   ? 'bg-indigo-50/60 border-indigo-400 ring-1 ring-indigo-400'

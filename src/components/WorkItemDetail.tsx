@@ -13,7 +13,8 @@ import {
   Send, 
   Tag,
   Eye,
-  AlertCircle
+  AlertCircle,
+  ArrowLeft
 } from 'lucide-react';
 
 export const WorkItemDetail: React.FC = () => {
@@ -25,6 +26,7 @@ export const WorkItemDetail: React.FC = () => {
     updatePriority,
     submitApproval,
     addComment,
+    setActivePage,
   } = useOps();
 
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'AUDIT_TRAIL' | 'COMMENTS'>('OVERVIEW');
@@ -67,15 +69,25 @@ export const WorkItemDetail: React.FC = () => {
       {/* Top Banner */}
       <div className="p-4 border-b border-slate-200 bg-slate-50/70">
         
-        {/* Active Collaborators Presence */}
-        {selectedItem.activeCollaborators.length > 0 && (
-          <div className="flex items-center gap-2 mb-2.5 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[11px] text-slate-600 shadow-2xs">
-            <Eye className="w-3.5 h-3.5 text-indigo-600" />
-            <span>Currently viewing:</span>
-            <span className="text-slate-900 font-semibold">{selectedItem.activeCollaborators.join(', ')}</span>
-            <span className="ml-auto font-mono text-[10px] text-slate-500">Revision #{selectedItem.version}</span>
-          </div>
-        )}
+        {/* Back navigation & presence row */}
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <button
+            onClick={() => setActivePage('QUEUE')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold border border-slate-200 transition shadow-2xs cursor-pointer"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Work Queue</span>
+          </button>
+
+          {selectedItem.activeCollaborators.length > 0 && (
+            <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-white border border-slate-200 text-[11px] text-slate-600 shadow-2xs">
+              <Eye className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Viewing:</span>
+              <span className="text-slate-900 font-semibold">{selectedItem.activeCollaborators.join(', ')}</span>
+              <span className="font-mono text-[10px] text-slate-500">v{selectedItem.version}</span>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">

@@ -30,6 +30,9 @@ interface OpsContextType {
   toasts: ToastMessage[];
   processedIdempotencyKeys: Set<string>;
   
+  activePage: 'QUEUE' | 'DETAIL' | 'APPROVALS' | 'LAB' | 'AUDIT';
+  setActivePage: (page: 'QUEUE' | 'DETAIL' | 'APPROVALS' | 'LAB' | 'AUDIT') => void;
+  
   // Actions
   setCurrentUser: (user: User) => void;
   setSelectedTeam: (team: string) => void;
@@ -77,6 +80,7 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [conflictState, setConflictState] = useState<ConflictState | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [processedIdempotencyKeys] = useState<Set<string>>(new Set());
+  const [activePage, setActivePage] = useState<'QUEUE' | 'DETAIL' | 'APPROVALS' | 'LAB' | 'AUDIT'>('QUEUE');
 
   const addToast = (type: ToastMessage['type'], title: string, description: string) => {
     const newToast: ToastMessage = {
@@ -445,6 +449,8 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         conflictState,
         toasts,
         processedIdempotencyKeys,
+        activePage,
+        setActivePage,
         setCurrentUser,
         setSelectedTeam,
         setSelectedItem,
