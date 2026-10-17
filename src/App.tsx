@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { OpsProvider } from './context/OpsContext';
-import { EvaluatorGuide } from './components/EvaluatorGuide';
 import { Header } from './components/Header';
 import { SimulationBar } from './components/SimulationBar';
 import { StatsOverview } from './components/StatsOverview';
@@ -16,10 +15,7 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* 1. Recruiter / Evaluator Quick Guide Banner */}
-      <EvaluatorGuide />
-
-      {/* 2. Global Navigation & RBAC Switcher */}
+      {/* 1. Global Navigation & RBAC Switcher */}
       <Header onOpenCreateModal={() => setIsCreateOpen(true)} />
 
       {/* 3. Interactive Critical Behaviour Lab (Evaluator Simulator) */}
