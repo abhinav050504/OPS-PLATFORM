@@ -1,15 +1,7 @@
 import React from 'react';
 import { useOps } from '../context/OpsContext';
 import { INITIAL_USERS, TEAMS } from '../mock/initialData';
-import { 
-  ShieldAlert, 
-  Activity, 
-  Users, 
-  Layers, 
-  PlusCircle, 
-  Radio, 
-  Sparkles 
-} from 'lucide-react';
+import { ShieldCheck, Plus, Users, Layers } from 'lucide-react';
 
 interface HeaderProps {
   onOpenCreateModal: () => void;
@@ -26,45 +18,35 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
   return (
     <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md bg-opacity-95">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           
-          {/* Logo & Platform Name */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <ShieldAlert className="w-6 h-6 text-white" />
+          {/* Brand */}
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm">
+              <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black text-lg tracking-wider text-white">NEWTONITE</span>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-semibold border border-indigo-500/30">
+                <span className="font-bold text-sm tracking-tight text-white">NEWTONITE</span>
+                <span className="text-[10px] font-semibold text-indigo-400 bg-indigo-950/80 px-1.5 py-0.5 rounded border border-indigo-800/60">
                   OPS HUB
                 </span>
               </div>
-              <p className="text-xs text-slate-400">Operations Under Pressure • Live Coordination</p>
+              <p className="text-[10px] text-slate-400 hidden sm:block">Operations Under Pressure Coordination System</p>
             </div>
           </div>
 
-          {/* Center: Live Sync Telemetry */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-950/60 border border-slate-800/80 text-xs">
-            <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-            <span className="text-slate-300 font-medium">Socket Live</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-slate-400">12ms latency</span>
-            <span className="text-slate-600">•</span>
-            <span className="text-emerald-400 font-mono">Consensus v4.8</span>
-          </div>
-
-          {/* Right Controls: Team Filter, User Switcher (RBAC), and Create Button */}
-          <div className="flex items-center gap-3">
+          {/* Right Controls: Team Filter, User Switcher (RBAC), and New Item Button */}
+          <div className="flex items-center gap-2.5">
             
             {/* Team Filter */}
-            <div className="hidden lg:flex items-center gap-1.5 bg-slate-800/80 rounded-lg px-2.5 py-1.5 border border-slate-700/60 text-xs">
+            <div className="hidden md:flex items-center gap-1.5 bg-slate-800/80 rounded-lg px-2.5 py-1.5 border border-slate-700/80 text-xs">
               <Layers className="w-3.5 h-3.5 text-slate-400" />
               <select
                 aria-label="Filter work items by team"
                 value={selectedTeam}
                 onChange={(e) => setSelectedTeam(e.target.value)}
-                className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer pr-1"
+                className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer"
               >
                 {TEAMS.map((t) => (
                   <option key={t} value={t} className="bg-slate-900 text-slate-200">
@@ -74,12 +56,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
               </select>
             </div>
 
-            {/* Persona Switcher (RBAC Demonstrator) */}
-            <div className="flex items-center gap-2 bg-slate-800/80 rounded-lg px-2.5 py-1.5 border border-slate-700/60">
+            {/* Test Persona Switcher (RBAC Demonstrator) */}
+            <div className="flex items-center gap-1.5 bg-slate-800/80 rounded-lg px-2.5 py-1.5 border border-slate-700/80 text-xs">
               <Users className="w-3.5 h-3.5 text-indigo-400" />
               <div className="flex flex-col text-left">
-                <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">
-                  Test Persona (RBAC)
+                <span className="text-[9px] text-slate-400 uppercase tracking-wider font-semibold">
+                  Test Role (RBAC)
                 </span>
                 <select
                   aria-label="Switch test user persona for RBAC testing"
@@ -92,7 +74,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
                 >
                   {INITIAL_USERS.map((u) => (
                     <option key={u.id} value={u.id} className="bg-slate-900 text-slate-200">
-                      {u.name} ({u.role.replace('_', ' ')})
+                      {u.name} — {u.role.replace('_', ' ')}
                     </option>
                   ))}
                 </select>
@@ -102,9 +84,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
             {/* New Work Item Button */}
             <button
               onClick={onOpenCreateModal}
-              className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/25 transition-all transform active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-sm transition"
             >
-              <PlusCircle className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">New Work Item</span>
             </button>
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { OpsProvider } from './context/OpsContext';
+import { EvaluatorGuide } from './components/EvaluatorGuide';
 import { Header } from './components/Header';
 import { SimulationBar } from './components/SimulationBar';
 import { StatsOverview } from './components/StatsOverview';
@@ -15,14 +16,17 @@ function DashboardContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
-      {/* 1. Global Navigation & RBAC Switcher */}
+      {/* 1. Recruiter / Evaluator Quick Guide Banner */}
+      <EvaluatorGuide />
+
+      {/* 2. Global Navigation & RBAC Switcher */}
       <Header onOpenCreateModal={() => setIsCreateOpen(true)} />
 
-      {/* 2. Interactive Critical Behavior Lab (Evaluator Simulator) */}
+      {/* 3. Interactive Critical Behaviour Lab (Evaluator Simulator) */}
       <SimulationBar />
 
-      {/* 3. Main Workspace Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
+      {/* 4. Main Workspace */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-4">
         
         {/* KPI Triage Overview */}
         <StatsOverview />
@@ -34,7 +38,7 @@ function DashboardContent() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           
           {/* Left Column: Work Items Queue (5 cols) */}
-          <div className="lg:col-span-5 space-y-4">
+          <div className="lg:col-span-5 space-y-3">
             <WorkItemList />
           </div>
 

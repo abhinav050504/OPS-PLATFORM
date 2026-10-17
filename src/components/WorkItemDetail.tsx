@@ -4,20 +4,16 @@ import { WorkItemPriority, WorkItemStatus } from '../types/ops';
 import { 
   CheckCircle2, 
   XCircle, 
-  Clock, 
   UserCheck, 
-  ShieldCheck, 
   History, 
   MessageSquare, 
   FileText, 
   Lock, 
   Flame, 
   Send, 
-  Layers, 
-  AlertCircle,
   Tag,
   Eye,
-  Check
+  AlertCircle
 } from 'lucide-react';
 
 export const WorkItemDetail: React.FC = () => {
@@ -41,14 +37,13 @@ export const WorkItemDetail: React.FC = () => {
 
   if (!selectedItem) {
     return (
-      <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-12 text-center text-slate-500">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-12 text-center text-slate-500 text-xs">
         Select a work item from the queue to inspect details and history.
       </div>
     );
   }
 
   const isAssignedToMe = selectedItem.assignee?.id === currentUser.id;
-  const canApprove = ['ADMIN', 'TEAM_LEAD', 'COMPLIANCE_OFFICER'].includes(currentUser.role);
 
   const handlePostComment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,25 +62,25 @@ export const WorkItemDetail: React.FC = () => {
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-xl flex flex-col h-full">
+    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm flex flex-col h-full">
       
-      {/* Top Banner: ID, Status, Actions */}
-      <div className="p-5 border-b border-slate-800 bg-slate-950/70">
+      {/* Top Banner: ID, Status, Ownership */}
+      <div className="p-4 border-b border-slate-800 bg-slate-950/60">
         
-        {/* Presence / Collaborators */}
+        {/* Active Collaborators Presence */}
         {selectedItem.activeCollaborators.length > 0 && (
-          <div className="flex items-center gap-2 mb-3 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-[11px] text-slate-400">
+          <div className="flex items-center gap-2 mb-2.5 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-[11px] text-slate-400">
             <Eye className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Active viewers on this record:</span>
+            <span>Currently viewing:</span>
             <span className="text-slate-200 font-medium">{selectedItem.activeCollaborators.join(', ')}</span>
-            <span className="ml-auto font-mono text-[10px] text-slate-500">Version v{selectedItem.version}</span>
+            <span className="ml-auto font-mono text-[10px] text-slate-400">Revision #{selectedItem.version}</span>
           </div>
         )}
 
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm font-bold text-indigo-400">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-xs font-bold text-indigo-400">
                 {selectedItem.id}
               </span>
               <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-medium">
@@ -95,12 +90,12 @@ export const WorkItemDetail: React.FC = () => {
                 {selectedItem.category.replace('_', ' ')}
               </span>
             </div>
-            <h2 className="text-lg font-bold text-white leading-snug">
+            <h2 className="text-base font-bold text-white leading-snug">
               {selectedItem.title}
             </h2>
           </div>
 
-          {/* Quick Action: Ownership Claim */}
+          {/* Quick Actions: Claim & Priority */}
           <div className="shrink-0 flex items-center gap-2">
             {!isAssignedToMe && (
               <button
@@ -112,7 +107,6 @@ export const WorkItemDetail: React.FC = () => {
               </button>
             )}
             
-            {/* Priority Trigger */}
             <button
               onClick={() => {
                 setNewPriorityCandidate(selectedItem.priority);
@@ -126,11 +120,11 @@ export const WorkItemDetail: React.FC = () => {
           </div>
         </div>
 
-        {/* Priority Change Modal / Popover */}
+        {/* Priority Change Modal */}
         {showPriorityModal && (
           <form onSubmit={handlePrioritySubmit} className="mt-3 p-3 bg-slate-900 rounded-lg border border-indigo-500/40 text-xs space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-semibold text-white">Re-evaluate Item Priority</span>
+              <span className="font-semibold text-white">Re-evaluate Priority</span>
               <button type="button" onClick={() => setShowPriorityModal(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
             <div className="flex gap-2">
@@ -149,7 +143,7 @@ export const WorkItemDetail: React.FC = () => {
             </div>
             <input
               type="text"
-              placeholder="Mandatory rationale for audit ledger (e.g. financial risk, SLA breach)..."
+              placeholder="Mandatory reason for audit ledger..."
               value={priorityReason}
               onChange={(e) => setPriorityReason(e.target.value)}
               className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-200"
@@ -162,43 +156,43 @@ export const WorkItemDetail: React.FC = () => {
           </form>
         )}
 
-        {/* Operational Attention Callout (What Requires Attention Next) */}
-        <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border-l-4 border-amber-500">
-          <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold uppercase tracking-wider mb-1">
+        {/* Prominent Next Action Required Callout */}
+        <div className="mt-3 p-3 rounded-lg bg-amber-950/20 border-l-4 border-amber-500">
+          <div className="flex items-center gap-1.5 text-amber-400 text-[11px] font-bold uppercase tracking-wider mb-0.5">
             <AlertCircle className="w-3.5 h-3.5" />
-            <span>Immediate Attention Required Next:</span>
+            <span>What Requires Attention Next:</span>
           </div>
-          <p className="text-sm font-medium text-slate-200">
+          <p className="text-xs font-medium text-slate-200">
             {selectedItem.nextActionRequired}
           </p>
         </div>
 
         {/* Operational Sign-Off / Approval Gate */}
         {selectedItem.requiresApproval && selectedItem.approvalStatus === 'PENDING' && (
-          <div className="mt-3 p-3.5 rounded-lg bg-indigo-950/40 border border-indigo-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-            <div className="space-y-0.5">
+          <div className="mt-3 p-3 rounded-lg bg-indigo-950/30 border border-indigo-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
               <div className="flex items-center gap-1.5 text-indigo-300 font-semibold text-xs">
                 <Lock className="w-3.5 h-3.5" />
                 <span>Operational Approval Gate Enforced</span>
               </div>
-              <p className="text-xs text-slate-400">
-                Action requires explicit verification from <span className="text-slate-300 font-medium">Team Lead, Compliance, or Admin</span>.
+              <p className="text-[11px] text-slate-400">
+                Action requires sign-off from <strong className="text-slate-200">Team Lead, Compliance, or Admin</strong>.
               </p>
             </div>
 
-            <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => submitApproval(selectedItem.id, 'APPROVE', selectedItem.version, approvalNote)}
-                className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-sm transition"
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Grant Approval</span>
               </button>
               <button
-                onClick={() => submitApproval(selectedItem.id, 'REJECT', selectedItem.version, approvalNote || 'Rejected due to risk')}
-                className="flex-1 md:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-md bg-rose-600/80 hover:bg-rose-600 text-white text-xs font-semibold transition"
+                onClick={() => submitApproval(selectedItem.id, 'REJECT', selectedItem.version, approvalNote || 'Rejected')}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition"
               >
-                <XCircle className="w-3.5 h-3.5" />
+                <XCircle className="w-3.5 h-3.5 text-rose-400" />
                 <span>Reject</span>
               </button>
             </div>
@@ -207,63 +201,62 @@ export const WorkItemDetail: React.FC = () => {
 
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Tabs */}
       <div className="border-b border-slate-800 bg-slate-900/90 px-4 flex items-center gap-4 text-xs font-semibold">
         <button
           onClick={() => setActiveTab('OVERVIEW')}
-          className={`py-3 flex items-center gap-2 border-b-2 transition ${
+          className={`py-2.5 flex items-center gap-1.5 border-b-2 transition ${
             activeTab === 'OVERVIEW'
               ? 'border-indigo-500 text-indigo-400'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <FileText className="w-4 h-4" />
-          <span>Investigation & Context</span>
+          <FileText className="w-3.5 h-3.5" />
+          <span>Investigation Context</span>
         </button>
         <button
           onClick={() => setActiveTab('AUDIT_TRAIL')}
-          className={`py-3 flex items-center gap-2 border-b-2 transition ${
+          className={`py-2.5 flex items-center gap-1.5 border-b-2 transition ${
             activeTab === 'AUDIT_TRAIL'
               ? 'border-indigo-500 text-indigo-400'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <History className="w-4 h-4" />
-          <span>Audit Trail ({selectedItem.history.length})</span>
+          <History className="w-3.5 h-3.5" />
+          <span>Audit Ledger ({selectedItem.history.length})</span>
         </button>
         <button
           onClick={() => setActiveTab('COMMENTS')}
-          className={`py-3 flex items-center gap-2 border-b-2 transition ${
+          className={`py-2.5 flex items-center gap-1.5 border-b-2 transition ${
             activeTab === 'COMMENTS'
               ? 'border-indigo-500 text-indigo-400'
               : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <MessageSquare className="w-4 h-4" />
+          <MessageSquare className="w-3.5 h-3.5" />
           <span>Decisions & Notes ({selectedItem.comments.length})</span>
         </button>
       </div>
 
       {/* Tab Contents */}
-      <div className="flex-1 p-5 overflow-y-auto space-y-5">
+      <div className="flex-1 p-4 overflow-y-auto space-y-4">
         
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'OVERVIEW' && (
-          <div className="space-y-5">
-            {/* What it is and why it exists */}
+          <div className="space-y-4">
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                Operational Context & Root Cause Summary
+              <h4 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                Why This Item Exists & Operational Context
               </h4>
-              <div className="bg-slate-950/70 p-4 rounded-xl border border-slate-800 text-sm text-slate-300 leading-relaxed whitespace-pre-line">
+              <div className="bg-slate-950/60 p-3.5 rounded-lg border border-slate-800 text-xs text-slate-300 leading-relaxed whitespace-pre-line">
                 {selectedItem.context}
               </div>
             </div>
 
-            {/* Quick Status Transition Dropdown */}
+            {/* Lifecycle Status Buttons */}
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
-                Change Lifecycle Status
+              <h4 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+                Lifecycle State Transition (OCC Enforced)
               </h4>
               <div className="flex flex-wrap gap-2">
                 {(['TRIAGE', 'INVESTIGATING', 'IN_PROGRESS', 'RESOLVED', 'BLOCKED'] as WorkItemStatus[]).map((status) => (
@@ -283,32 +276,29 @@ export const WorkItemDetail: React.FC = () => {
             </div>
 
             {/* Metadata Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 pt-3 border-t border-slate-800/80">
-              <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800/80">
+            <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-800/80">
+              <div className="bg-slate-950/40 p-2.5 rounded-lg border border-slate-800/80">
                 <span className="text-[10px] text-slate-500 uppercase font-semibold">Assignee</span>
-                <p className="text-xs font-medium text-slate-200 mt-1">
+                <p className="text-xs font-medium text-slate-200 mt-0.5">
                   {selectedItem.assignee ? selectedItem.assignee.name : 'Unassigned (Triage)'}
                 </p>
               </div>
 
-              <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800/80">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold">Responsible Team</span>
-                <p className="text-xs font-medium text-slate-200 mt-1">{selectedItem.team}</p>
+              <div className="bg-slate-950/40 p-2.5 rounded-lg border border-slate-800/80">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold">Team</span>
+                <p className="text-xs font-medium text-slate-200 mt-0.5">{selectedItem.team}</p>
               </div>
 
-              <div className="bg-slate-950/40 p-3 rounded-lg border border-slate-800/80">
-                <span className="text-[10px] text-slate-500 uppercase font-semibold">Concurrency Version</span>
-                <p className="text-xs font-medium text-emerald-400 font-mono mt-1">
-                  Revision #{selectedItem.version}
+              <div className="bg-slate-950/40 p-2.5 rounded-lg border border-slate-800/80">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold">Revision</span>
+                <p className="text-xs font-mono font-medium text-indigo-400 mt-0.5">
+                  Version #{selectedItem.version}
                 </p>
               </div>
             </div>
 
             {/* Tags */}
             <div>
-              <span className="text-[10px] text-slate-500 uppercase font-semibold block mb-1.5">
-                Classification Tags
-              </span>
               <div className="flex flex-wrap gap-1.5">
                 {selectedItem.tags.map((tag) => (
                   <span
@@ -326,15 +316,15 @@ export const WorkItemDetail: React.FC = () => {
 
         {/* TAB 2: AUDIT TRAIL */}
         {activeTab === 'AUDIT_TRAIL' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-xs text-slate-400">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs text-slate-400 mb-2">
               <span>Immutable Ledger of Operations</span>
-              <span className="font-mono text-[11px] text-indigo-400">Hash verified</span>
+              <span className="font-mono text-[11px] text-indigo-400">Audit verified</span>
             </div>
 
-            <div className="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+            <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
               {selectedItem.history.map((event) => (
-                <div key={event.id} className="relative group">
+                <div key={event.id} className="relative">
                   <div className="absolute -left-6 top-1 w-5 h-5 rounded-full bg-slate-900 border-2 border-indigo-500 flex items-center justify-center">
                     <div className="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
                   </div>
@@ -367,8 +357,6 @@ export const WorkItemDetail: React.FC = () => {
         {/* TAB 3: COMMENTS & DECISIONS */}
         {activeTab === 'COMMENTS' && (
           <div className="space-y-4">
-            
-            {/* List of comments */}
             <div className="space-y-3">
               {selectedItem.comments.length === 0 ? (
                 <p className="text-xs text-slate-500 text-center py-4">No notes or decisions posted yet.</p>
@@ -376,13 +364,13 @@ export const WorkItemDetail: React.FC = () => {
                 selectedItem.comments.map((comm) => (
                   <div
                     key={comm.id}
-                    className={`p-3.5 rounded-xl border ${
+                    className={`p-3 rounded-lg border ${
                       comm.isDecision
                         ? 'bg-indigo-950/30 border-indigo-500/40'
                         : 'bg-slate-950/70 border-slate-800'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <img
                           src={comm.author.avatar}
@@ -404,14 +392,14 @@ export const WorkItemDetail: React.FC = () => {
               )}
             </div>
 
-            {/* Comment Post Form */}
+            {/* Post comment */}
             <form onSubmit={handlePostComment} className="pt-3 border-t border-slate-800 space-y-2">
               <textarea
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Log a technical observation or architectural decision..."
                 className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-                rows={3}
+                rows={2}
               />
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
@@ -421,7 +409,7 @@ export const WorkItemDetail: React.FC = () => {
                     onChange={(e) => setIsDecisionComment(e.target.checked)}
                     className="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-0"
                   />
-                  <span>Mark as Official Decision (Pinned to Audit Log)</span>
+                  <span>Mark as Official Architectural Decision</span>
                 </label>
 
                 <button
