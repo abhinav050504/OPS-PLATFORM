@@ -32,6 +32,7 @@
 - `8e5f8ea`: *docs: add day-by-day engineering devlog and project roadmap*
 - `66fac16`: *refactor: remove top walkthrough banner for clean interface*
 - `738804c`: *style: convert full platform theme to clean enterprise white/light mode*
+- `93d1790`: *feat: restructure app into spacious dedicated pages with top tab navigation*
 
 ---
 
