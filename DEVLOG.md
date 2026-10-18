@@ -1,6 +1,7 @@
 # Engineering Devlog & Project Roadmap
 **Project:** Newtonite Operations Platform (Ops Under Pressure)  
-**Repository:** Mini Project / Production Operations Engineering Tracker  
+**Candidate:** Abhinav Singh (B.Tech CSE)  
+**Repository:** https://github.com/abhinav050504/OPS-PLATFORM  
 
 ---
 
@@ -36,25 +37,34 @@
 
 ---
 
-## 📅 Day 2 — Sunday, Oct 18, 2026: UI/UX Review & Submission
-### 🎯 Planned Objectives
-- [ ] Final UI/UX review and submission to Google Form by 10:00 AM.
-- [ ] Prep backend schema and API contracts for Monday's Full Stack / DSA assessment.
-- [ ] Outline data persistence strategy (SQLite / PostgreSQL with transactional row locking).
+## 📅 Day 2 — Sunday, Oct 18, 2026: UI/UX Polish & Backend Assessment Scaffold
+- [x] Converted theme to clean, distraction-free white enterprise palette.
+- [x] Decoupled single-scroll interface into 5 dedicated pages (`Queue`, `Detail`, `Approvals`, `Concurrency Lab`, `Audit Log`).
+- [x] Analyzed friend's backend scaffold (`https://github.com/Abhi9-hub/Newtonite-operation-tracker`).
 
 ---
 
-## 📅 Day 3 — Monday, Oct 19, 2026: Full Stack & DSA Backend Integration
-### 🎯 Planned Objectives
-- [ ] Implement backend REST/WebSocket service.
-- [ ] Real database persistence with monotonic version increments for optimistic locking.
-- [ ] Automated integration test suite for race condition and idempotency verification.
-- [ ] Finalize submission for the 9:00 AM Monday deadline.
+## 📅 Day 3 — Monday, Oct 19, 2026: Full Stack Backend Merge & Zero-Setup Persistence
+- [x] **Backend Implementation (`backend/`)**:
+  - Implemented `/work-items` REST service supporting CRUD, filtering, pagination, and audit logs.
+  - Implemented **Optimistic Concurrency Control (OCC)** version checking on `PATCH /work-items/:id`. Returns HTTP 409 `VERSION_CONFLICT` on stale revisions with full conflict metadata.
+  - Implemented **Atomic Mutex Locking** on `POST /work-items/:id/claim`. Rejects simultaneous claim races with HTTP 409 `CLAIM_COLLISION`.
+  - Implemented **Idempotency Middleware** caching responses by `Idempotency-Key` header.
+  - Implemented **RBAC Authorization Enforcement** on approval gates (`TEAM_LEAD`, `ADMIN`, `COMPLIANCE_OFFICER`).
+- [x] **Zero-Setup Database Engine (`backend/src/db.ts`)**:
+  - Dual-mode database layer: Seamlessly switches between PostgreSQL (port 5432) and high-fidelity in-memory seed store when Postgres is not running, ensuring evaluators can test everything with zero external dependencies.
+- [x] **Frontend-Backend Integration**:
+  - Implemented `src/api/backendClient.ts` with real-time health polling and format translation.
+  - Connected `OpsContext.tsx` to communicate with backend API on port 3000, with graceful offline fallback.
+  - Added live backend status indicator badge in `Header.tsx`.
+- [x] **Testing & Verification**:
+  - 9 automated Vitest tests passing (`npm run test:backend`).
+  - Full TypeScript and Vite build passing with 0 warnings (`npm run build`).
 
 ---
 
-## 📅 Post-Challenge Roadmap (Mini Project Continuation)
+## 📅 Post-Challenge Roadmap
 - [ ] WebSocket-based live multi-user cursor and presence synchronization.
 - [ ] Custom Slack/Discord webhook alerts on P0 state elevation.
-- [ ] Full-text search indexing with fuzzy match (e.g., SQLite FTS5 / PostgreSQL tsvector).
+- [ ] Full-text search indexing with fuzzy match (e.g., PostgreSQL tsvector).
 - [ ] Export post-mortem incident report as PDF / Markdown artifact.

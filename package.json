@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "backend": "npm --prefix backend run dev",
+    "test:backend": "npm --prefix backend test",
+    "build:backend": "npm --prefix backend run build",
+    "build": "tsc -b && vite build && npm --prefix backend run build",
     "lint": "oxlint",
     "preview": "vite preview"
   },

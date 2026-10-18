@@ -1,6 +1,11 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, WorkItem, WorkItemStatus, WorkItemPriority, AuditEvent, WorkItemCategory } from '../types/ops';
 import { INITIAL_USERS, INITIAL_WORK_ITEMS } from '../mock/initialData';
+import {
+  checkBackendHealth,
+  apiFetch,
+  transformBackendItemToFrontend,
+} from '../api/backendClient';
 
 export interface ConflictState {
   isOpen: boolean;
@@ -29,10 +34,12 @@ interface OpsContextType {
   conflictState: ConflictState | null;
   toasts: ToastMessage[];
   processedIdempotencyKeys: Set<string>;
-  
+  backendOnline: boolean;
+  refreshFromBackend: () => Promise<void>;
+
   activePage: 'QUEUE' | 'DETAIL' | 'APPROVALS' | 'LAB' | 'AUDIT';
   setActivePage: (page: 'QUEUE' | 'DETAIL' | 'APPROVALS' | 'LAB' | 'AUDIT') => void;
-  
+
   // Actions
   setCurrentUser: (user: User) => void;
   setSelectedTeam: (team: string) => void;
@@ -42,7 +49,7 @@ interface OpsContextType {
   setPriorityFilter: (priority: string) => void;
   closeConflictModal: () => void;
   removeToast: (id: string) => void;
-  
+
   // Core Business Operations
   createWorkItem: (itemData: {
     title: string;
@@ -53,14 +60,14 @@ interface OpsContextType {
     nextActionRequired: string;
     requiresApproval: boolean;
     tags: string[];
-  }) => void;
-  
+  }) => Promise<void>;
+
   claimWorkItem: (itemId: string, idempotencyKey?: string) => Promise<boolean>;
   updateStatus: (itemId: string, newStatus: WorkItemStatus, expectedVersion: number) => Promise<boolean>;
   updatePriority: (itemId: string, newPriority: WorkItemPriority, expectedVersion: number, reason: string) => Promise<boolean>;
   submitApproval: (itemId: string, decision: 'APPROVE' | 'REJECT', expectedVersion: number, note?: string) => Promise<boolean>;
   addComment: (itemId: string, content: string, isDecision?: boolean) => void;
-  
+
   // Concurrency & Edge-case Interactive Simulators for Evaluators
   simulateExternalConflict: (itemId: string) => void;
   simulateRaceConditionClaim: (itemId: string) => void;
@@ -80,6 +87,7 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [conflictState, setConflictState] = useState<ConflictState | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [processedIdempotencyKeys] = useState<Set<string>>(new Set());
+  const [backendOnline, setBackendOnline] = useState<boolean>(false);
   const [activePage, setActivePage] = useState<'QUEUE' | 'DETAIL' | 'APPROVALS' | 'LAB' | 'AUDIT'>('QUEUE');
 
   const addToast = (type: ToastMessage['type'], title: string, description: string) => {
@@ -105,8 +113,35 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const refreshFromBackend = async () => {
+    try {
+      const isHealthy = await checkBackendHealth();
+      setBackendOnline(isHealthy);
+      if (isHealthy) {
+        const res = await apiFetch<{ items: any[] }>('/work-items');
+        if (res.ok && res.data?.items && res.data.items.length > 0) {
+          const transformed = res.data.items.map(transformBackendItemToFrontend);
+          setWorkItems(transformed);
+          if (!selectedItem || !transformed.some((i) => i.id === selectedItem.id)) {
+            setSelectedItem(transformed[0]);
+          }
+        }
+      }
+    } catch {
+      setBackendOnline(false);
+    }
+  };
+
+  useEffect(() => {
+    refreshFromBackend();
+    const timer = setInterval(() => {
+      checkBackendHealth().then((online) => setBackendOnline(online));
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   // 1. Create Work Item
-  const createWorkItem = (itemData: {
+  const createWorkItem = async (itemData: {
     title: string;
     context: string;
     category: WorkItemCategory;
@@ -116,6 +151,37 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     requiresApproval: boolean;
     tags: string[];
   }) => {
+    if (backendOnline) {
+      const res = await apiFetch<any>('/work-items', {
+        method: 'POST',
+        userId: currentUser.id,
+        body: {
+          teamId: itemData.team,
+          title: itemData.title,
+          description: itemData.context,
+          priority: itemData.priority.toLowerCase().includes('p0')
+            ? 'urgent'
+            : itemData.priority.toLowerCase().includes('p1')
+            ? 'high'
+            : itemData.priority.toLowerCase().includes('p2')
+            ? 'medium'
+            : 'low',
+          nextActionRequired: itemData.nextActionRequired,
+          requiresApproval: itemData.requiresApproval,
+          tags: itemData.tags,
+        },
+      });
+
+      if (res.ok && res.data) {
+        const newItem = transformBackendItemToFrontend(res.data);
+        setWorkItems((prev) => [newItem, ...prev.filter((i) => i.id !== newItem.id)]);
+        setSelectedItem(newItem);
+        addToast('success', 'Work Item Created (Backend)', `Registered ${newItem.id} assigned to team ${itemData.team}`);
+        return;
+      }
+    }
+
+    // Local state fallback
     const newId = `OPS-${Math.floor(1000 + Math.random() * 9000)}`;
     const newItem: WorkItem = {
       id: newId,
@@ -156,10 +222,40 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Idempotency check
     if (idempotencyKey) {
       if (processedIdempotencyKeys.has(idempotencyKey)) {
-        addToast('info', 'Idempotent Request Deduplicated', `Action suppressed: Request key ${idempotencyKey.slice(0, 8)} already committed.`);
+        addToast(
+          'info',
+          'Idempotent Request Deduplicated',
+          `Action suppressed: Request key ${idempotencyKey.slice(0, 8)} already committed.`
+        );
         return true;
       }
       processedIdempotencyKeys.add(idempotencyKey);
+    }
+
+    if (backendOnline) {
+      const backendId = itemId.replace(/^OPS-/, 'w-');
+      const res = await apiFetch<any>(`/work-items/${backendId}/claim`, {
+        method: 'POST',
+        userId: currentUser.id,
+        idempotencyKey,
+      });
+
+      if (!res.ok) {
+        if (res.status === 409) {
+          const detail = res.error?.message || 'Another engineer claimed this item moments earlier.';
+          addToast('error', 'Claim Collision Detected (HTTP 409)', detail);
+        } else {
+          addToast('error', 'Claim Failed', res.error?.message || 'Unable to claim item');
+        }
+        return false;
+      }
+
+      if (res.data) {
+        const updated = transformBackendItemToFrontend(res.data);
+        updateWorkItemInState(updated);
+        addToast('success', 'Ownership Assigned (Backend API)', `You are now primary assignee for ${itemId}.`);
+        return true;
+      }
     }
 
     const currentTarget = workItems.find((w) => w.id === itemId);
@@ -199,7 +295,45 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const currentTarget = workItems.find((w) => w.id === itemId);
     if (!currentTarget) return false;
 
-    // Check version conflict
+    if (backendOnline) {
+      const backendId = itemId.replace(/^OPS-/, 'w-');
+      const res = await apiFetch<any>(`/work-items/${backendId}`, {
+        method: 'PATCH',
+        userId: currentUser.id,
+        body: {
+          expectedVersion,
+          status: newStatus.toLowerCase(),
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 409) {
+          setConflictState({
+            isOpen: true,
+            item: currentTarget,
+            serverVersion: res.error?.details?.currentVersion || currentTarget.version + 1,
+            serverState: {
+              status: (res.error?.details?.currentStatus || currentTarget.status).toUpperCase() as WorkItemStatus,
+              lastModifiedBy: res.error?.details?.lastModifiedBy || 'Server',
+            },
+            clientIntendedState: { status: newStatus },
+          });
+          addToast('warning', 'Stale Version Detected (HTTP 409)', `Another user edited ${itemId} on the server.`);
+        } else {
+          addToast('error', 'Update Failed', res.error?.message || 'Server rejected status update');
+        }
+        return false;
+      }
+
+      if (res.data) {
+        const updated = transformBackendItemToFrontend(res.data);
+        updateWorkItemInState(updated);
+        addToast('success', 'Status Transitioned (Backend API)', `${itemId} is now ${newStatus}`);
+        return true;
+      }
+    }
+
+    // Check version conflict locally
     if (currentTarget.version !== expectedVersion) {
       setConflictState({
         isOpen: true,
@@ -212,7 +346,7 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return false;
     }
 
-    // RBAC check: Only leads/admins or assignees can change status
+    // RBAC check
     const canEdit = currentUser.role === 'ADMIN' || currentUser.role === 'TEAM_LEAD' || currentTarget.assignee?.id === currentUser.id;
     if (!canEdit) {
       addToast('error', 'Permission Denied', `Role ${currentUser.role} lacks authorization to transition status.`);
@@ -243,9 +377,56 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // 4. Update Priority (Requires reason log)
-  const updatePriority = async (itemId: string, newPriority: WorkItemPriority, expectedVersion: number, reason: string): Promise<boolean> => {
+  const updatePriority = async (
+    itemId: string,
+    newPriority: WorkItemPriority,
+    expectedVersion: number,
+    reason: string
+  ): Promise<boolean> => {
     const currentTarget = workItems.find((w) => w.id === itemId);
     if (!currentTarget) return false;
+
+    if (backendOnline) {
+      const backendId = itemId.replace(/^OPS-/, 'w-');
+      const res = await apiFetch<any>(`/work-items/${backendId}`, {
+        method: 'PATCH',
+        userId: currentUser.id,
+        body: {
+          expectedVersion,
+          priority: newPriority.toLowerCase().includes('p0')
+            ? 'urgent'
+            : newPriority.toLowerCase().includes('p1')
+            ? 'high'
+            : newPriority.toLowerCase().includes('p2')
+            ? 'medium'
+            : 'low',
+          reason,
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 409) {
+          setConflictState({
+            isOpen: true,
+            item: currentTarget,
+            serverVersion: res.error?.details?.currentVersion || currentTarget.version + 1,
+            serverState: {
+              priority: (res.error?.details?.currentPriority || currentTarget.priority).toUpperCase() as WorkItemPriority,
+              lastModifiedBy: res.error?.details?.lastModifiedBy || 'Server',
+            },
+            clientIntendedState: { priority: newPriority },
+          });
+        }
+        return false;
+      }
+
+      if (res.data) {
+        const updated = transformBackendItemToFrontend(res.data);
+        updateWorkItemInState(updated);
+        addToast('info', 'Priority Re-evaluated (Backend API)', `${itemId} set to ${newPriority}`);
+        return true;
+      }
+    }
 
     if (currentTarget.version !== expectedVersion) {
       setConflictState({
@@ -282,9 +463,60 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // 5. Submit Approval Gate (RBAC enforced)
-  const submitApproval = async (itemId: string, decision: 'APPROVE' | 'REJECT', expectedVersion: number, note?: string): Promise<boolean> => {
+  const submitApproval = async (
+    itemId: string,
+    decision: 'APPROVE' | 'REJECT',
+    expectedVersion: number,
+    note?: string
+  ): Promise<boolean> => {
     const currentTarget = workItems.find((w) => w.id === itemId);
     if (!currentTarget) return false;
+
+    if (backendOnline) {
+      const backendId = itemId.replace(/^OPS-/, 'w-');
+      const res = await apiFetch<any>(`/work-items/${backendId}/approval`, {
+        method: 'POST',
+        userId: currentUser.id,
+        body: {
+          expectedVersion,
+          decision,
+          reason: note,
+        },
+      });
+
+      if (!res.ok) {
+        if (res.status === 403) {
+          addToast(
+            'error',
+            'Authorization Failure (RBAC)',
+            res.error?.message || `Role "${currentUser.role}" is not authorized.`
+          );
+        } else if (res.status === 409) {
+          setConflictState({
+            isOpen: true,
+            item: currentTarget,
+            serverVersion: res.error?.details?.currentVersion || currentTarget.version + 1,
+            serverState: {
+              status: currentTarget.status,
+              lastModifiedBy: 'Server',
+            },
+            clientIntendedState: { status: decision === 'APPROVE' ? 'IN_PROGRESS' : 'BLOCKED' },
+          });
+        }
+        return false;
+      }
+
+      if (res.data) {
+        const updated = transformBackendItemToFrontend(res.data);
+        updateWorkItemInState(updated);
+        addToast(
+          'success',
+          `Approval ${decision === 'APPROVE' ? 'Granted' : 'Rejected'} (Backend API)`,
+          `Recorded signature for ${itemId}`
+        );
+        return true;
+      }
+    }
 
     // RBAC: Only TEAM_LEAD, COMPLIANCE_OFFICER, or ADMIN can approve
     const authorized = ['ADMIN', 'TEAM_LEAD', 'COMPLIANCE_OFFICER'].includes(currentUser.role);
@@ -298,7 +530,9 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: 'Just now',
       actor: currentUser,
       actionType: decision === 'APPROVE' ? 'APPROVAL_GRANTED' : 'APPROVAL_REJECTED',
-      summary: `${decision === 'APPROVE' ? 'Approved' : 'Rejected'} by ${currentUser.name} (${currentUser.role}). Note: ${note || 'Standard compliance verified'}`,
+      summary: `${decision === 'APPROVE' ? 'Approved' : 'Rejected'} by ${currentUser.name} (${currentUser.role}). Note: ${
+        note || 'Standard compliance verified'
+      }`,
       details: { reason: note },
     };
 
@@ -318,9 +552,24 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   // 6. Add Comment
-  const addComment = (itemId: string, content: string, isDecision?: boolean) => {
+  const addComment = async (itemId: string, content: string, isDecision?: boolean) => {
     const currentTarget = workItems.find((w) => w.id === itemId);
     if (!currentTarget) return;
+
+    if (backendOnline) {
+      const backendId = itemId.replace(/^OPS-/, 'w-');
+      const res = await apiFetch<any>(`/work-items/${backendId}/comments`, {
+        method: 'POST',
+        userId: currentUser.id,
+        body: { body: content, isDecision: !!isDecision },
+      });
+
+      if (res.ok && res.data) {
+        const updated = transformBackendItemToFrontend(res.data);
+        updateWorkItemInState(updated);
+        return;
+      }
+    }
 
     const newComment = {
       id: `comm-${Date.now()}`,
@@ -374,7 +623,11 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     setWorkItems((prev) => prev.map((w) => (w.id === itemId ? updated : w)));
-    addToast('warning', 'External Modification Event Simulated', `David Kim updated ${itemId} on the server. Try editing this item to see conflict resolution!`);
+    addToast(
+      'warning',
+      'External Modification Event Simulated',
+      `David Kim updated ${itemId} on the server. Try editing this item to see conflict resolution!`
+    );
   };
 
   // Simulates two users clicking "Claim" simultaneously
@@ -402,7 +655,11 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
 
     updateWorkItemInState(updated);
-    addToast('error', 'Race Condition Conflict Triggered', `Marcus Vance locked ${itemId} milliseconds before your request reached the socket.`);
+    addToast(
+      'error',
+      'Race Condition Conflict Triggered',
+      `Marcus Vance locked ${itemId} milliseconds before your request reached the socket.`
+    );
   };
 
   const forceResolveConflict = (resolution: 'KEEP_SERVER' | 'OVERWRITE_WITH_CLIENT') => {
@@ -449,6 +706,8 @@ export const OpsProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         conflictState,
         toasts,
         processedIdempotencyKeys,
+        backendOnline,
+        refreshFromBackend,
         activePage,
         setActivePage,
         setCurrentUser,

@@ -1,27 +1,28 @@
 import React from 'react';
 import { useOps } from '../context/OpsContext';
 import { INITIAL_USERS, TEAMS } from '../mock/initialData';
-import { ShieldCheck, Plus, Users, Layers } from 'lucide-react';
+import { ShieldCheck, Plus, Users, Layers, Server, RefreshCw } from 'lucide-react';
 
 interface HeaderProps {
   onOpenCreateModal: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
-  const { 
-    currentUser, 
-    setCurrentUser, 
-    selectedTeam, 
-    setSelectedTeam 
+  const {
+    currentUser,
+    setCurrentUser,
+    selectedTeam,
+    setSelectedTeam,
+    backendOnline,
+    refreshFromBackend,
   } = useOps();
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14">
-          
-          {/* Brand */}
-          <div className="flex items-center gap-2.5">
+          {/* Brand & Backend Status */}
+          <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-sm">
               <ShieldCheck className="w-5 h-5" />
             </div>
@@ -34,11 +35,30 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
               </div>
               <p className="text-[10px] text-slate-500 hidden sm:block">Operations Coordination Platform</p>
             </div>
+
+            {/* Backend Connection Indicator Badge */}
+            <button
+              onClick={() => refreshFromBackend()}
+              title="Click to re-ping backend service status"
+              className={`hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition cursor-pointer ${
+                backendOnline
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                  : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+              }`}
+            >
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  backendOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+                }`}
+              />
+              <Server className="w-3 h-3 text-current" />
+              <span>{backendOnline ? 'Backend API: Live (Port 3000)' : 'Backend API: Standby (Local OCC)'}</span>
+              <RefreshCw className="w-2.5 h-2.5 opacity-60 ml-0.5" />
+            </button>
           </div>
 
           {/* Right Controls: Team Filter, User Switcher (RBAC), and New Item Button */}
           <div className="flex items-center gap-2.5">
-            
             {/* Team Filter */}
             <div className="hidden md:flex items-center gap-1.5 bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-200 text-xs">
               <Layers className="w-3.5 h-3.5 text-slate-500" />
@@ -89,7 +109,6 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCreateModal }) => {
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">New Work Item</span>
             </button>
-
           </div>
         </div>
       </div>

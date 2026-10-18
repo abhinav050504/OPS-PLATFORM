@@ -1,30 +1,53 @@
 # Newtonite Operations Control/Coordination Platform (Ops Hub)
-> **One-Day Full-Stack Engineering Assessment — Operations Under Pressure**  
-> *A high-reliability coordination platform designed for multi-team operational environments under pressure.*
+> **Full-Stack Production Engineering Assessment — Operations Under Pressure**  
+> *A high-reliability coordination platform designed for multi-team operational environments under pressure.*  
+> Evaluator Zero-Setup Ready: Runs instantly with integrated Express backend and in-memory fallback.
 
 ---
 
 ## 🚀 Live Demo & Quick Start
 
 ### 1. Prerequisites
-- **Node.js**: v18+ (tested on Node v24.15)
-- **npm** or **pnpm**
+- **Node.js**: v18+ (tested on Node v20/v22/v24)
+- **npm**
 
-### 2. Installation & Run Locally
+### 2. Run the Full Stack Application (Recommended)
+You can start both backend and frontend concurrently:
+
 ```bash
 # Clone the repository
 git clone https://github.com/abhinav050504/OPS-PLATFORM.git
-cd newtonite-ops-platform
+cd OPS-PLATFORM
 
-# Install dependencies
+# 1. Install dependencies
 npm install
+npm --prefix backend install
 
-# Start the interactive development server
+# 2. Start the Backend API (runs Express on port 3000)
+npm run backend
+
+# 3. In a second terminal, start the Frontend (runs Vite on port 5173)
 npm run dev
 ```
-Open **`http://localhost:5173`** in your browser.
 
-### 3. Production Build
+Open **`http://localhost:5173`** in your browser.  
+Notice the **`Backend API: Live (Port 3000)`** indicator pill in the header confirming real-time HTTP connectivity!
+
+*(Note: The platform features a zero-dependency dual-mode database engine. If a local PostgreSQL instance is running on port 5432, it will connect to it; if not, it automatically boots with a high-fidelity in-memory seed store so evaluators don't need Docker or Postgres to test every capability).*
+
+### 3. Run Automated Backend Tests
+```bash
+npm run test:backend
+```
+Executes 9 automated Vitest tests covering:
+- `GET /health` service availability
+- `POST /work-items` item creation and validation
+- `PATCH /work-items/:id` Optimistic Concurrency Control (OCC 409 stale revision rejection)
+- `POST /work-items/:id/claim` Atomic ownership mutex (Claim collision rejection)
+- `Idempotency-Key` deduplication on duplicate requests
+- RBAC authorization gates for operational approvals
+
+### 4. Production Build
 ```bash
 npm run build
 npm run preview
@@ -43,75 +66,75 @@ This platform provides:
 4. **Actionable Directive**: A dedicated **"What Requires Attention Next"** callout on every ticket.
 5. **Immutable Audit Ledger**: Full history of actor identity, state transitions, reasons, and decisions.
 6. **System-Enforced Authorization (RBAC)**: Operational approval gates for legal, compliance, and payout reversals that cannot be bypassed simply by manipulating UI elements.
+7. **Spacious Dedicated Navigation**: 5 distinct pages (`Queue`, `Detail`, `Approvals`, `Concurrency Lab`, `Audit Log`) with clean light/white enterprise styling.
 
 ---
 
 ## ⚡ How to Test Critical Behaviors (Evaluator Walkthrough)
 
-To verify the non-trivial distributed behaviors requested in the candidate brief, use the **Critical Behaviour Lab** bar located right beneath the header:
+To verify the non-trivial distributed behaviors requested in the candidate brief, switch to the **Concurrency Lab** tab or use the simulation triggers:
 
 ### 1. Optimistic Concurrency Control (HTTP 409 Conflict)
-- Select ticket `OPS-4029`.
-- Click **`1. Trigger Remote Conflict`** in the top bar. (This simulates another engineer in a different timezone resolving or modifying the ticket on the server).
-- Now try changing the status or editing `OPS-4029`.
-- **Observed Behavior**: The system detects a version mismatch (`v4` expected, `v5` found), rejects the silent overwrite, and opens the **Concurrency Conflict Modal** with a side-by-side diff comparing your draft against the committed server state. You can either accept the server state or force an overwrite with a logged audit entry.
+- Go to the **Concurrency Lab** tab.
+- Click **`1. Trigger Remote Conflict`**. (Simulates a teammate in another region updating ticket `OPS-4029` on the server).
+- Switch to the **Detail** or **Queue** tab and attempt to change the status or priority of `OPS-4029`.
+- **Observed Behavior**: The API or local engine detects a version mismatch (`v4` expected, `v5` found), rejects the silent overwrite with HTTP 409 `VERSION_CONFLICT`, and opens the **Concurrency Conflict Modal** with a side-by-side diff comparing your draft against the committed server state. You can either accept the server state or force an overwrite with a logged audit entry.
 
 ### 2. Ownership Race Condition ("Claim War")
-- Select ticket `OPS-4024` (Unassigned Triage).
+- Go to the **Concurrency Lab** tab.
 - Click **`2. Simulate Ownership Race War`**.
 - **Observed Behavior**: Simulates another responder acquiring the mutex lease 8ms earlier. An alert banner notifies you that another teammate just claimed it, preventing duplicate investigation work.
 
 ### 3. Idempotent Deduplication (Rapid Double-Clicks)
-- Select any work item.
-- Click **`3. Test Rapid Double-Click (Idempotency)`**.
+- In the **Concurrency Lab** tab, click **`3. Test Rapid Double-Click (Idempotency)`**.
 - **Observed Behavior**: Two identical mutations with the same client `Idempotency-Key` are fired within 200ms. The second request is suppressed and returns the cached outcome, preventing duplicate audit logs.
 
 ### 4. RBAC & Operational Sign-off Gate
-- Switch the active user in the top navigation between **Elena Rostova (Compliance Officer)**, **David Kim (Admin)**, and **Aisha Patel (Operations Engineer)**.
-- Observe how operational approval buttons on `OPS-4028` (GDPR Data Purge) or `OPS-4029` (Payout Reversals) strictly enforce role authorization at the logic layer.
+- Switch the active user persona in the top navigation between **Elena Rostova (Compliance Officer)**, **David Kim (Admin)**, and **Marcus Vance (Operations Engineer)**.
+- Visit the **Approvals** page or open `OPS-4028` (GDPR Data Purge).
+- Notice that non-privileged roles (like standard Operations Engineer) receive an immediate authorization rejection, while Leads, Admins, and Compliance Officers can record formal signatures.
 
 ---
 
-## 📂 Project Structure
+## 📂 Project Architecture
 
 ```
 newtonite-ops-platform/
-├── src/
+├── backend/                           # Express + TypeScript REST API
+│   ├── src/
+│   │   ├── app.ts                     # Express server & route registration
+│   │   ├── db.ts                      # Dual-engine database (Postgres + In-Memory fallback)
+│   │   ├── modules/
+│   │   │   ├── auth/                  # JWT auth & user verification middleware
+│   │   │   ├── authz/                 # RBAC permission checks & unit tests
+│   │   │   └── workItems/             # Schemas, service, routes, OCC & concurrency tests
+│   │   └── shared/
+│   │       ├── errors.ts              # Standardized API error hierarchy
+│   │       ├── idempotency.ts         # Mutation deduplication middleware
+│   │       └── validate.ts            # Zod validation middleware
+│   ├── package.json                   # Backend dependencies & test scripts
+│   └── tsconfig.json
+├── src/                               # React + Vite Frontend (White Theme)
+│   ├── api/
+│   │   └── backendClient.ts           # Type-safe API client & backend health monitor
 │   ├── components/
-│   │   ├── Header.tsx                 # Brand, telemetry, team filter, RBAC persona switcher
-│   │   ├── SimulationBar.tsx          # 1-click critical behavior evaluator lab
-│   │   ├── StatsOverview.tsx          # At-a-glance KPI triage metrics
-│   │   ├── FilterBar.tsx              # Search and multi-attribute filters
+│   │   ├── Header.tsx                 # Brand, backend health pill, team filter, RBAC persona
+│   │   ├── NavigationTabs.tsx         # 5 dedicated page tabs
 │   │   ├── WorkItemList.tsx           # High-density operational queue
 │   │   ├── WorkItemDetail.tsx         # Detailed inspection, next actions, audit trail
 │   │   ├── ConcurrencyConflictModal.tsx # Side-by-side version diff & reconciliation
 │   │   ├── CreateWorkItemModal.tsx    # Creation flow with incident templates
 │   │   └── ToastContainer.tsx         # Distributed event notifications
 │   ├── context/
-│   │   └── OpsContext.tsx             # State store, optimistic locking, RBAC, idempotency
+│   │   └── OpsContext.tsx             # Global state, backend client sync, OCC fallback
 │   ├── mock/
 │   │   └── initialData.ts             # Realistic operations seed data (incidents, payments, GDPR)
 │   ├── types/
 │   │   └── ops.ts                     # TypeScript data contracts & audit event definitions
-│   ├── App.tsx                        # Master layout assembly
-│   ├── main.tsx                       # React DOM entry
-│   └── index.css                      # Tailwind CSS v4 styling
+│   ├── App.tsx                        # Master multi-page routing assembly
+│   └── index.css                      # Clean enterprise white theme styling
+├── package.json                       # Fullstack root scripts (dev, backend, test:backend, build)
 ├── ENGINEERING_DECISIONS.md           # 5 Key architectural decisions & trade-offs
 ├── UI_UX_DESIGN.md                    # In-depth UX philosophy & design system spec
-└── README.md                          # Project documentation & run guide
+└── DEVLOG.md                          # Engineering log & progression roadmap
 ```
-
----
-
-## 🛠️ Tech Stack
-- **Framework**: React 19 + TypeScript
-- **Styling**: Tailwind CSS v4
-- **Icons**: Lucide React
-- **Build Tool**: Vite 8
-- **State Management**: React Context with Optimistic Concurrency Control (OCC)
-
----
-
-## 📄 Documentation Links
-- [Engineering Decisions (`ENGINEERING_DECISIONS.md`)](./ENGINEERING_DECISIONS.md)
-- [UI/UX Design Specification (`UI_UX_DESIGN.md`)](./UI_UX_DESIGN.md)
